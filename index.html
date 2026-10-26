@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remontando IA - Diagnóstico de Sistema</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Orbitron & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#0a0a10',
+                            card: '#12121e',
+                            purple: '#a855f7',
+                            cyan: '#06b6d4',
+                            pink: '#ec4899',
+                            yellow: '#eab308',
+                            green: '#22c55e',
+                            red: '#ef4444'
+                        }
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Neon Glow Utilities */
+        .glow-cyan {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4), inset 0 0 15px rgba(6, 182, 212, 0.2);
+        }
+        .glow-purple {
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+        }
+        .glow-pink {
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+        }
+        .text-glow-cyan {
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.4);
+        }
+        .text-glow-pink {
+            text-shadow: 0 0 10px rgba(236, 72, 153, 0.7), 0 0 20px rgba(236, 72, 153, 0.4);
+        }
+        .text-glow-yellow {
+            text-shadow: 0 0 10px rgba(234, 179, 8, 0.7);
+        }
+
+        /* Scanline Overlay for Cyberpunk Vibe */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Subtle Matrix Grid */
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        /* Pulse Animations */
+        @keyframes cyber-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(0.98); }
+        }
+        .animate-cyber-pulse {
+            animation: cyber-pulse 3s infinite ease-in-out;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #06b6d4;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a855f7;
+        }
+    </style>
+</head>
+<body class="bg-cyber-bg text-gray-100 font-sans antialiased selection:bg-cyber-pink selection:text-white relative overflow-x-hidden">
+
+    <!-- Scanlines Visual Layer -->
+    <div class="fixed inset-0 scanlines z-50 opacity-40"></div>
+    <div class="fixed inset-0 bg-grid z-0"></div>
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-cyber-bg/80 border-b border-cyber-cyan/30 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-cyber-cyan via-cyber-purple to-cyber-pink p-[2px] transform group-hover:rotate-12 transition-transform duration-300">
+                    <div class="w-full h-full bg-cyber-bg rounded-[6px] flex items-center justify-center">
+                        <i class="fa-solid fa-microchip text-cyber-cyan text-xl group-hover:text-cyber-pink transition-colors"></i>
+                    </div>
+                </div>
+                <span class="font-orbitron font-extrabold text-xl sm:text-2xl bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-pink bg-clip-text text-transparent tracking-wider">
+                    REMONTANDO<span class="text-white text-glow-cyan">.IA</span>
+                </span>
+            </a>
+
+            <!-- Nav Links -->
+            <nav class="hidden md:flex items-center space-x-8 font-orbitron text-sm">
+                <a href="#hero" class="hover:text-cyber-cyan transition-colors tracking-wide hover:text-glow-cyan">Início</a>
+                <a href="#quiz-section" class="hover:text-cyber-pink transition-colors tracking-wide hover:text-glow-pink">O Quiz</a>
+                <a href="#about-section" class="hover:text-cyber-yellow transition-colors tracking-wide hover:text-glow-yellow">Sobre a IA</a>
+            </nav>
+
+            <!-- Quick Status Badge -->
+            <div class="flex items-center gap-2 bg-cyber-card border border-cyber-cyan/40 px-3 py-1.5 rounded-full text-xs font-orbitron">
+                <span class="w-2.5 h-2.5 rounded-full bg-cyber-red animate-ping" id="header-status-dot"></span>
+                <span class="text-cyber-red font-semibold" id="header-status-text">IA CORROMPIDA</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <main class="relative z-10">
+
+        <!-- HERO SECTION -->
+        <section id="hero" class="min-h-[85vh] flex items-center justify-center relative py-12 px-4">
+            <!-- Background Glow Orbs -->
+            <div class="absolute top-1/4 left-10 w-72 h-72 bg-cyber-cyan/20 rounded-full blur-[100px] pointer-events-none"></div>
+            <div class="absolute bottom-1/4 right-10 w-80 h-80 bg-cyber-pink/20 rounded-full blur-[120px] pointer-events-none"></div>
+
+            <div class="max-w-4xl mx-auto text-center space-y-8">
+                <!-- Glitch Alert Tag -->
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyber-red/50 bg-cyber-red/10 text-cyber-red text-xs sm:text-sm font-orbitron tracking-widest uppercase animate-pulse">
+                    <i class="fa-solid fa-triangle-exclamation"></i> ALERTA CRÍTICO: Núcleo Neural em Falha
+                </div>
+
+                <!-- Main Title -->
+                <h1 class="font-orbitron font-black text-4xl sm:text-6xl md:text-7xl tracking-tight uppercase leading-tight">
+                    A Inteligência Artificial <span class="bg-gradient-to-r from-cyber-red via-cyber-pink to-cyber-yellow bg-clip-text text-transparent text-glow-pink">Pifou!</span>
+                </h1>
+
+                <!-- Description -->
+                <p class="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto font-light leading-relaxed">
+                    Modelos de IA dependem de arquiteturas complexas. Dados ruidosos, hiperparâmetros incorretos e falta de travas éticas colapsaram o sistema. <strong class="text-cyber-cyan font-semibold">Sua missão é restaurar os 4 pilares fundamentais.</strong>
+                </p>
+
+                <!-- Hero Action Button -->
+                <div class="pt-6">
+                    <a href="#quiz-section" class="inline-block group relative">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-pink rounded-xl blur-md opacity-75 group-hover:opacity-100 transition duration-300 group-hover:blur-lg"></div>
+                        <button class="relative px-8 py-4 bg-cyber-bg border border-cyber-cyan/50 rounded-xl text-white font-orbitron text-lg font-bold tracking-wider hover:text-cyber-cyan transition-all duration-300 flex items-center gap-3">
+                            <i class="fa-solid fa-terminal text-cyber-cyan group-hover:rotate-90 transition-transform duration-300"></i>
+                            INICIAR DIAGNÓSTICO
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    </a>
+                </div>
+
+                <!-- Tech Stats Summary -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-12 max-w-3xl mx-auto text-left">
+                    <div class="p-4 bg-cyber-card/60 border border-white/5 rounded-lg">
+                        <div class="text-xs text-gray-400 font-orbitron">INTEGRIDADE</div>
+                        <div class="text-xl font-bold font-orbitron text-cyber-red" id="hero-integrity-stat">0%</div>
+                    </div>
+                    <div class="p-4 bg-cyber-card/60 border border-white/5 rounded-lg">
+                        <div class="text-xs text-gray-400 font-orbitron">ETAPAS</div>
+                        <div class="text-xl font-bold font-orbitron text-cyber-cyan">4 MÓDULOS</div>
+                    </div>
+                    <div class="p-4 bg-cyber-card/60 border border-white/5 rounded-lg">
+                        <div class="text-xs text-gray-400 font-orbitron">HARDWARE</div>
+                        <div class="text-xl font-bold font-orbitron text-cyber-purple">CLUSTER GPU</div>
+                    </div>
+                    <div class="p-4 bg-cyber-card/60 border border-white/5 rounded-lg">
+                        <div class="text-xs text-gray-400 font-orbitron">ALINHAMENTO</div>
+                        <div class="text-xl font-bold font-orbitron text-cyber-yellow">REQUERIDO</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- QUIZ INTERATIVO (PRINCIPAL) -->
+        <section id="quiz-section" class="py-16 px-4 max-w-4xl mx-auto">
+            
+            <!-- Quiz Terminal Container -->
+            <div class="bg-cyber-card border-2 border-cyber-cyan/30 rounded-2xl p-6 sm:p-8 relative shadow-2xl backdrop-blur-md">
+                
+                <!-- Terminal Header Bar -->
+                <div class="flex items-center justify-between pb-6 mb-6 border-b border-white/10">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-cyber-red inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-cyber-yellow inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-cyber-green inline-block"></span>
+                        <span class="ml-2 font-orbitron text-xs text-gray-400 tracking-wider hidden sm:inline-block">CONSOLE_REPARO_IA_V4.02</span>
+                    </div>
+                    <div class="text-xs font-orbitron text-cyber-cyan font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-wifi animate-pulse"></i>
+                        ETAPA <span id="current-step-num">1</span> DE 4
+                    </div>
+                </div>
+
+                <!-- Integridade do Sistema - Progress Bar -->
+                <div class="mb-8">
+                    <div class="flex justify-between items-center mb-2 font-orbitron text-sm">
+                        <span class="text-gray-300 flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-cyber-cyan"></i> INTEGRIDADE DO SISTEMA
+                        </span>
+                        <span class="font-bold text-cyber-cyan text-glow-cyan" id="progress-percent font-orbitron">0%</span>
+                    </div>
+                    <div class="w-full h-4 bg-black/60 rounded-full overflow-hidden p-0.5 border border-white/10">
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-pink rounded-full transition-all duration-500 ease-out w-0"></div>
+                    </div>
+                </div>
+
+                <!-- QUIZ CONTENT CONTAINER -->
+                <div id="quiz-container">
+                    <!-- Dynamic Step Header -->
+                    <div class="space-y-3 mb-6">
+                        <div id="step-badge" class="inline-block px-3 py-1 rounded-md text-xs font-orbitron font-bold uppercase tracking-wider bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40">
+                            Etapa 1: Dados
+                        </div>
+                        <h2 id="step-title" class="font-orbitron text-2xl sm:text-3xl font-bold text-white">
+                            Carregando pergunta...
+                        </h2>
+                        <p id="step-description" class="text-gray-300 text-sm sm:text-base leading-relaxed bg-black/30 p-4 rounded-xl border border-white/5">
+                            Explicação técnica da etapa.
+                        </p>
+                    </div>
+
+                    <!-- Question Prompt -->
+                    <div class="mb-6">
+                        <h3 id="question-text" class="font-orbitron text-lg font-semibold text-cyber-yellow flex items-center gap-2">
+                            <i class="fa-solid fa-circle-question"></i> Qual decisão deve ser tomada?
+                        </h3>
+                    </div>
+
+                    <!-- Options List -->
+                    <div id="options-container" class="space-y-3 mb-6">
+                        <!-- Options injected via JavaScript -->
+                    </div>
+
+                    <!-- Feedback Box (Hidden by default) -->
+                    <div id="feedback-box" class="hidden p-5 rounded-xl border mb-6 transition-all duration-300">
+                        <div class="flex items-start gap-3">
+                            <i id="feedback-icon" class="text-2xl mt-1"></i>
+                            <div class="space-y-1">
+                                <h4 id="feedback-title" class="font-orbitron font-bold text-base"></h4>
+                                <p id="feedback-text" class="text-sm text-gray-200 leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Next Step Button (Hidden by default) -->
+                    <div class="flex justify-end">
+                        <button id="next-btn" onclick="nextQuestion()" class="hidden px-6 py-3 bg-gradient-to-r from-cyber-cyan to-cyber-purple hover:from-cyber-purple hover:to-cyber-pink text-white font-orbitron font-bold text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-cyber-cyan/50 items-center gap-2">
+                            PRÓXIMA ETAPA <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- FINAL RESULT CONTAINER (Hidden by default) -->
+                <div id="result-container" class="hidden text-center py-8 space-y-8">
+                    <div class="inline-flex p-4 bg-cyber-green/10 border-2 border-cyber-green rounded-full text-cyber-green text-4xl mb-2 animate-bounce">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h2 class="font-orbitron text-3xl sm:text-4xl font-extrabold text-white tracking-wide">
+                            SISTEMA 100% OPERACIONAL E RESTAURADO
+                        </h2>
+                        <p class="text-cyber-cyan font-orbitron text-sm">DIAGNÓSTICO CONCLUÍDO COM SUCESSO</p>
+                    </div>
+
+                    <p class="text-gray-300 max-w-xl mx-auto text-sm sm:text-base">
+                        Parabéns, Engenheiro(a)! Você corrigiu os vazamentos de dados, calibrou os hiperparâmetros, alocou a potência computacional e aplicou as travas de segurança necessárias.
+                    </p>
+
+                    <!-- 4 Pillars Summary Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left max-w-2xl mx-auto pt-4">
+                        <div class="p-4 bg-black/40 border border-cyber-cyan/30 rounded-xl space-y-1">
+                            <div class="text-cyber-cyan font-orbitron text-xs font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-database"></i> 1. CURADORIA DE DADOS
+                            </div>
+                            <p class="text-xs text-gray-300">Dados limpos, sem viés e representativos para evitar alucinações e preconceitos sistêmicos.</p>
+                        </div>
+                        <div class="p-4 bg-black/40 border border-cyber-purple/30 rounded-xl space-y-1">
+                            <div class="text-cyber-purple font-orbitron text-xs font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-sliders"></i> 2. HIPERPARÂMETROS
+                            </div>
+                            <p class="text-xs text-gray-300">Taxa de aprendizado ajustada para equilíbrio ideal sem Overfitting ou Underfitting.</p>
+                        </div>
+                        <div class="p-4 bg-black/40 border border-cyber-pink/30 rounded-xl space-y-1">
+                            <div class="text-cyber-pink font-orbitron text-xs font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-microchip"></i> 3. COMPUTAÇÃO & CLUSTER
+                            </div>
+                            <p class="text-xs text-gray-300">Aceleração paralela em GPUs/TPUs com VRAM suficiente para matrizes massivas.</p>
+                        </div>
+                        <div class="p-4 bg-black/40 border border-cyber-yellow/30 rounded-xl space-y-1">
+                            <div class="text-cyber-yellow font-orbitron text-xs font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-user-shield"></i> 4. ALINHAMENTO ÉTICO
+                            </div>
+                            <p class="text-xs text-gray-300">Filtros de segurança e alinhamento humano (RLHF) para operação segura.</p>
+                        </div>
+                    </div>
+
+                    <!-- Reset Quiz Button -->
+                    <div class="pt-6">
+                        <button onclick="restartQuiz()" class="px-8 py-4 bg-cyber-card border-2 border-cyber-cyan text-cyber-cyan font-orbitron font-bold rounded-xl hover:bg-cyber-cyan hover:text-black transition-all duration-300 tracking-wider">
+                            <i class="fa-solid fa-rotate-right mr-2"></i> REINICIAR DIAGNÓSTICO
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SOBRE O PROJETO (PILARES DA IA) -->
+        <section id="about-section" class="py-20 px-4 max-w-7xl mx-auto border-t border-white/10 mt-12">
+            <div class="text-center space-y-4 mb-16">
+                <h2 class="font-orbitron font-extrabold text-3xl sm:text-5xl text-white uppercase tracking-wider">
+                    Como Funciona o <span class="text-cyber-cyan text-glow-cyan">Conserto da IA</span>?
+                </h2>
+                <p class="text-gray-400 max-w-2xl mx-auto text-base">
+                    Entenda os fundamentos técnicos que mantêm os modelos modernos de inteligência artificial funcionando com precisão e segurança.
+                </p>
+            </div>
+
+            <!-- Pillars Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Card 1 -->
+                <div class="bg-cyber-card border border-cyber-cyan/30 p-6 rounded-2xl space-y-4 hover:border-cyber-cyan transition-all duration-300 group hover:-translate-y-2">
+                    <div class="w-12 h-12 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/40 flex items-center justify-center text-cyber-cyan text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-filter"></i>
+                    </div>
+                    <h3 class="font-orbitron font-bold text-xl text-white">Dados & Curadoria</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Uma IA é tão boa quanto os dados com os quais é treina. Remover duplicatas, ruídos, vieses e informações falsas é a fundação para evitar "alucinações".
+                    </p>
+                    <div class="text-xs font-orbitron text-cyber-cyan pt-2">#GarbageInGarbageOut</div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-cyber-card border border-cyber-purple/30 p-6 rounded-2xl space-y-4 hover:border-cyber-purple transition-all duration-300 group hover:-translate-y-2">
+                    <div class="w-12 h-12 rounded-xl bg-cyber-purple/10 border border-cyber-purple/40 flex items-center justify-center text-cyber-purple text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <h3 class="font-orbitron font-bold text-xl text-white">Hiperparâmetros</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Taxas de aprendizado (learning rate), pesos dos neurônios e funções de perda definem como a rede neural ajusta seus conhecimentos sem memorizar demais (overfitting).
+                    </p>
+                    <div class="text-xs font-orbitron text-cyber-purple pt-2">#Optimization #Weights</div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-cyber-card border border-cyber-pink/30 p-6 rounded-2xl space-y-4 hover:border-cyber-pink transition-all duration-300 group hover:-translate-y-2">
+                    <div class="w-12 h-12 rounded-xl bg-cyber-pink/10 border border-cyber-pink/40 flex items-center justify-center text-cyber-pink text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="font-orbitron font-bold text-xl text-white">Hardware & Infra</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Treinar e executar modelos de grande porte requer computação paralela massiva com GPUs/TPUs, alta largura de banda de memória (VRAM) e infraestrutura em nuvem.
+                    </p>
+                    <div class="text-xs font-orbitron text-cyber-pink pt-2">#Compute #GPUs #VRAM</div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-cyber-card border border-cyber-yellow/30 p-6 rounded-2xl space-y-4 hover:border-cyber-yellow transition-all duration-300 group hover:-translate-y-2">
+                    <div class="w-12 h-12 rounded-xl bg-cyber-yellow/10 border border-cyber-yellow/40 flex items-center justify-center text-cyber-yellow text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-shield-virus"></i>
+                    </div>
+                    <h3 class="font-orbitron font-bold text-xl text-white">Ética & Guardrails</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Técnicas como Aprendizado por Reforço com Feedback Humano (RLHF) e filtros de conteúdo garantem respostas seguras, respeitosas e alinhadas aos valores humanos.
+                    </p>
+                    <div class="text-xs font-orbitron text-cyber-yellow pt-2">#RLHF #Safety #AI Ethics</div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-white/10 bg-cyber-bg py-8 text-center text-xs text-gray-500 font-orbitron relative z-10">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                REMONTANDO IA &copy; 2026 - Plataforma Educativa de Diagnóstico Neural
+            </div>
+            <div class="flex gap-6 text-gray-400">
+                <a href="#hero" class="hover:text-cyber-cyan">Topo</a>
+                <a href="#quiz-section" class="hover:text-cyber-pink">Quiz</a>
+                <a href="#about-section" class="hover:text-cyber-yellow">Pilares</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- QUIZ LOGIC JAVASCRIPT -->
+    <script>
+        // Quiz Data Structure
+        const quizData = [
+            {
+                step: 1,
+                badge: "Etapa 1 - Limpeza e Curadoria de Dados",
+                title: "O modelo está gerando respostas sem sentido e preconceituosas.",
+                description: "A IA absorveu bilhões de textos da internet sem nenhum filtro prévio. Como resultado, ela assimilou dados duplicados, informações falsas, preconceitos e ruídos de formatação.",
+                question: "Qual é a melhor abordagem para consertar os dados de treinamento?",
+                options: [
+                    {
+                        text: "Injetar mais dados brutos sem filtrar para tentar 'compensar' os erros por volume.",
+                        correct: false,
+                        explanation: "Incorreto! Aumentar a quantidade de dados sem qualidade só amplifica o ruído e os vieses. É o clássico problema 'Lixo Entra, Lixo Sai' (Garbage In, Garbage Out)."
+                    },
+                    {
+                        text: "Realizar sanetização, remoção de duplicatas, balanceamento de representatividade e filtragem de ruído.",
+                        correct: true,
+                        explanation: "Correto! Dados limpos, diversificados e bem estruturados são essenciais. A curadoria garante que a IA aprenda padrões reais e neutros em vez de memorizar ruídos."
+                    },
+                    {
+                        text: "Deletar todos os dados e usar apenas frases criadas manualmente por uma única pessoa.",
+                        correct: false,
+                        explanation: "Incorreto! Isso reduziria drasticamente a capacidade de generalização da IA, limitando completamente o conhecimento do sistema."
+                    }
+                ]
+            },
+            {
+                step: 2,
+                badge: "Etapa 2 - Otimização do Algoritmo e Hiperparâmetros",
+                title: "A IA decorou as respostas de treino, mas falha em perguntas inéditas.",
+                description: "O modelo sofreu de 'Overfitting' (sobreajuste). A taxa de aprendizado (learning rate) estava inadequada e não houve regularização dos pesos neurais durante as épocas de treinamento.",
+                question: "Como você deve calibrar os hiperparâmetros da IA?",
+                options: [
+                    {
+                        text: "Aumentar a taxa de aprendizado ao máximo para o modelo treinar mais rápido.",
+                        correct: false,
+                        explanation: "Incorreto! Uma taxa de aprendizado muito alta faz com que o algoritmo dê 'passos' muito grandes, ultrapassando o ponto ótimo de convergência."
+                    },
+                    {
+                        text: "Reduzir o número de neurônios para zero e desativar o cálculo de perda (loss function).",
+                        correct: false,
+                        explanation: "Incorreto! Sem neurônios ou função de perda, o modelo perde a capacidade de aprender qualquer padrão."
+                    },
+                    {
+                        text: "Ajustar a taxa de aprendizado (learning rate), aplicar técnicas de Dropout e usar um conjunto de validação.",
+                        correct: true,
+                        explanation: "Correto! O ajuste fino do learning rate com táticas como Dropout impede que a rede memorize dados de cor, permitindo que ela raciocine sobre dados novos."
+                    }
+                ]
+            },
+            {
+                step: 3,
+                badge: "Etapa 3 - Potência de Computação e Hardware",
+                title: "O processamento da IA está demorando horas para responder e dando estouro de memória (Out of Memory).",
+                description: "Modelos de linguagem modernos exigem bilhões de operações de multiplicação de matrizes por segundo. O servidor atual está tentando rodar o modelo na CPU comum.",
+                question: "Como resolver o gargalo de infraestrutura da IA?",
+                options: [
+                    {
+                        text: "Migrar para um cluster de GPUs/TPUs com alta VRAM e suporte a processamento paralelo e quantização.",
+                        correct: true,
+                        explanation: "Exatamente! GPUs e TPUs são desenhadas especificamente para cálculos matriciais paralelos massivos. A quantização reduz o uso de memória mantendo a precisão."
+                    },
+                    {
+                        text: "Trocar o disco rígido por um com maior espaço de armazenamento básico.",
+                        correct: false,
+                        explanation: "Incorreto! O gargalo não é espaço em disco rígido (HD/SSD), mas sim velocidade de processamento e largura de banda na memória RAM/VRAM."
+                    },
+                    {
+                        text: "Desligar os coolers de resfriamento para diminuir a energia gasta no servidor.",
+                        correct: false,
+                        explanation: "Incorreto! Isso causará superaquecimento do hardware (thermal throttling) ou danos físicos permanentes aos componentes."
+                    }
+                ]
+            },
+            {
+                step: 4,
+                badge: "Etapa 4 - Alinhamento Ético e Guardrails de Segurança",
+                title: "A IA está respondendo a instruções maliciosas e gerando conteúdo perigoso.",
+                description: "Mesmo funcional e rápida, a IA não possui senso moral intrínseco. Sem filtros, ela pode ser manipulada por ataques de 'Jailbreak' ou gerar textos danosos aos usuários.",
+                question: "Qual o passo final para garantir a segurança da IA antes do lançamento?",
+                options: [
+                    {
+                        text: "Confiar que os usuários só farão perguntas boas e éticas ao sistema.",
+                        correct: false,
+                        explanation: "Incorreto! Na prática, sistemas abertos sofrem tentativas constantes de exploração. Confiar cegamente é um risco crítico de segurança."
+                    },
+                    {
+                        text: "Implementar RLHF (Aprendizado por Reforço com Feedback Humano) e camadas extras de Guardrails de entrada/saída.",
+                        correct: true,
+                        explanation: "Perfeito! O RLHF alinha as respostas da IA com a intenção e ética humana, enquanto os Guardrails barram tentativas de exploração e conteúdos impróprios em tempo real."
+                    },
+                    {
+                        text: "Bloquear todas as palavras do dicionário para evitar que a IA fale qualquer frase.",
+                        correct: false,
+                        explanation: "Incorreto! Isso tornaria o sistema completamente inútil para qualquer interação convencional."
+                    }
+                ]
+            }
+        ];
+
+        // State variables
+        let currentStep = 0;
+        let systemIntegrity = 0;
+        let answeredSteps = new Array(quizData.length).fill(false);
+
+        // Initialize UI on window load
+        window.onload = function() {
+            renderQuestion();
+        };
+
+        // Render current question
+        function renderQuestion() {
+            const data = quizData[currentStep];
+            
+            // Update Header & Badge
+            document.getElementById("current-step-num").innerText = data.step;
+            document.getElementById("step-badge").innerText = data.badge;
+            document.getElementById("step-title").innerText = data.title;
+            document.getElementById("step-description").innerText = data.description;
+
+            // Reset options & feedback
+            const optionsContainer = document.getElementById("options-container");
+            optionsContainer.innerHTML = "";
+
+            const feedbackBox = document.getElementById("feedback-box");
+            feedbackBox.classList.add("hidden");
+            
+            const nextBtn = document.getElementById("next-btn");
+            nextBtn.classList.add("hidden");
+
+            // Render Options
+            data.options.forEach((opt, index) => {
+                const btn = document.createElement("button");
+                btn.className = "w-full text-left p-4 rounded-xl border border-white/10 bg-black/40 hover:bg-cyber-card hover:border-cyber-cyan transition-all duration-300 flex items-start gap-3 group text-sm sm:text-base cursor-pointer";
+                btn.onclick = () => selectOption(index);
+
+                btn.innerHTML = `
+                    <div class="w-6 h-6 rounded-full border border-cyber-cyan/50 flex items-center justify-center text-xs font-orbitron group-hover:border-cyber-cyan group-hover:bg-cyber-cyan/20 shrink-0 mt-0.5">
+                        ${String.fromCharCode(65 + index)}
+                    </div>
+                    <div class="text-gray-200 group-hover:text-white">${opt.text}</div>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // Handle option selection
+        function selectOption(index) {
+            const data = quizData[currentStep];
+            const selectedOpt = data.options[index];
+
+            const feedbackBox = document.getElementById("feedback-box");
+            const feedbackIcon = document.getElementById("feedback-icon");
+            const feedbackTitle = document.getElementById("feedback-title");
+            const feedbackText = document.getElementById("feedback-text");
+            const nextBtn = document.getElementById("next-btn");
+
+            // Prevent re-scoring if already correct on this step
+            const wasAlreadyCorrect = answeredSteps[currentStep];
+
+            if (selectedOpt.correct) {
+                // Correct styling
+                feedbackBox.className = "p-5 rounded-xl border mb-6 transition-all duration-300 bg-cyber-green/10 border-cyber-green text-cyber-green";
+                feedbackIcon.className = "fa-solid fa-circle-check text-2xl text-cyber-green";
+                feedbackTitle.innerText = "DIAGNÓSTICO CORRETO!";
+                feedbackText.innerText = selectedOpt.explanation;
+
+                if (!wasAlreadyCorrect) {
+                    answeredSteps[currentStep] = true;
+                    systemIntegrity += 25;
+                    updateIntegrityUI();
+                }
+
+                // Show next button
+                nextBtn.classList.remove("hidden");
+                nextBtn.classList.add("flex");
+            } else {
+                // Incorrect styling
+                feedbackBox.className = "p-5 rounded-xl border mb-6 transition-all duration-300 bg-cyber-red/10 border-cyber-red text-cyber-red";
+                feedbackIcon.className = "fa-solid fa-triangle-exclamation text-2xl text-cyber-red";
+                feedbackTitle.innerText = "FALHA NO DIAGNÓSTICO!";
+                feedbackText.innerText = selectedOpt.explanation;
+            }
+
+            feedbackBox.classList.remove("hidden");
+        }
+
+        // Update Integrity UI across components
+        function updateIntegrityUI() {
+            // Update Bar width
+            document.getElementById("progress-bar").style.width = `${systemIntegrity}%`;
+            // Update Text
+            document.getElementById("progress-percent").innerText = `${systemIntegrity}%`;
+            document.getElementById("hero-integrity-stat").innerText = `${systemIntegrity}%`;
+
+            // If integrity starts rising, change badge status
+            if (systemIntegrity > 0 && systemIntegrity < 100) {
+                const headerDot = document.getElementById("header-status-dot");
+                const headerText = document.getElementById("header-status-text");
+                headerDot.className = "w-2.5 h-2.5 rounded-full bg-cyber-yellow animate-ping";
+                headerText.className = "text-cyber-yellow font-semibold";
+                headerText.innerText = "REPARANDO IA...";
+            }
+        }
+
+        // Advance to next question or show results
+        function nextQuestion() {
+            currentStep++;
+            if (currentStep < quizData.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Show final victory screen
+        function showResults() {
+            document.getElementById("quiz-container").classList.add("hidden");
+            document.getElementById("result-container").classList.remove("hidden");
+
+            // Header status to complete
+            const headerDot = document.getElementById("header-status-dot");
+            const headerText = document.getElementById("header-status-text");
+            headerDot.className = "w-2.5 h-2.5 rounded-full bg-cyber-green";
+            headerText.className = "text-cyber-green font-semibold";
+            headerText.innerText = "IA OPERACIONAL";
+        }
+
+        // Restart Quiz
+        function restartQuiz() {
+            currentStep = 0;
+            systemIntegrity = 0;
+            answeredSteps = new Array(quizData.length).fill(false);
+
+            updateIntegrityUI();
+
+            // Reset header status text
+            const headerDot = document.getElementById("header-status-dot");
+            const headerText = document.getElementById("header-status-text");
+            headerDot.className = "w-2.5 h-2.5 rounded-full bg-cyber-red animate-ping";
+            headerText.className = "text-cyber-red font-semibold";
+            headerText.innerText = "IA CORROMPIDA";
+
+            document.getElementById("result-container").classList.add("hidden");
+            document.getElementById("quiz-container").classList.remove("hidden");
+
+            renderQuestion();
+        }
+    </script>
+</body>
+</html>
